@@ -1,0 +1,78 @@
+.vercel
+
+.vercel
+
+.vercel
+
+# apps directory is used to store apps that are being developed
+generated/
+efs/
+
+# uploaded files
+uploaded-files/
+
+tmp
+logs/
+extra-logging-config.yml
+info.json
+
+node_modules
+.DS_Store
+
+# Docker run logs
+app-template-utils/docker/logs/
+app-template-utils/docker/.container-logs.pid
+dist
+dist-ssr
+*.local
+batch_test_results.log
+
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# Taskfile
+Taskfile.yml
+.task
+
+# env files
+.env*
+!.env.common
+
+# Python (backend and scripts)
+.venv
+.ruff_cache
+.pytest_cache
+__pycache__
+*_private.py
+
+.idea
+*.iml
+
+# Claude local settings
+**/settings.local.json
+.claude/agents/**
+
+# Ignore asdf .tool-versions file, as they're generated from pyproject.toml and package.json.
+.tool-versions
+
+# Ignore these lock files because we only use pnpm
+**/package-lock.json
+**/yarn.lock
+
+# Eslint cache
+**/.eslintcache
+.pnpm-store
+.config
+
+# Local binaries
+bin/
+
+# Test files
+**/input.json
+test.sh
+
+# Markdown files (except README.md)
+*.md
+!README.md

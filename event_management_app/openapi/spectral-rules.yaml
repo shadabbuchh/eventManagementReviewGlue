@@ -1,0 +1,57 @@
+extends: ['spectral:oas']
+
+rules:
+  # Custom rule to detect style and explode properties incorrectly placed inside schema objects
+  query-parameters-style-explode-placement:
+    description: "The 'style' and 'explode' properties should be at the parameter level, not inside the schema object."
+    message: "The properties 'style' and 'explode' should be defined at the parameter level, not inside the schema object for query parameters."
+    severity: error
+    given: "$.paths[*][*].parameters[?(@.in == 'query')].schema"
+    then:
+      - function: falsy
+        field: style
+      - function: falsy
+        field: explode
+
+  # Additional rule to ensure style and explode are at parameter level for all parameter types
+  parameter-style-explode-placement:
+    description: "The 'style' and 'explode' properties should be at the parameter level for all parameters."
+    message: "The properties 'style' and 'explode' should be defined at the parameter level, not inside the schema object."
+    severity: error
+    given: '$.paths[*][*].parameters[*].schema'
+    then:
+      - function: falsy
+        field: style
+      - function: falsy
+        field: explode
+
+  # Rule to ensure required API prefix in servers
+  servers-must-have-api-prefix:
+    description: "OpenAPI servers must include '/api/v1' in the URL"
+    message: "OpenAPI servers must include '/api/v1' in the url property. Add a server with url containing '/api/v1'"
+    severity: error
+    given: '$.servers[*]'
+    then:
+      function: pattern
+      field: url
+      functionOptions:
+        match: ".*\\/api\\/v1.*"
+
+  # Rule to ensure servers section exists
+  servers-must-exist:
+    description: 'OpenAPI specification must include a servers section'
+    message: "OpenAPI specification must include a 'servers' section"
+    severity: error
+    given: '$'
+    then:
+      function: truthy
+      field: servers
+
+  # Rule to prevent 'example' keyword in schema properties (not compatible with Fastify/AJV)
+  no-schema-example:
+    description: "Schema properties should not use 'example' keyword (not compatible with Fastify/AJV strict mode)"
+    message: "The 'example' keyword is not supported in schema properties. Use 'examples' (plural) in response content sections instead for Fastify/AJV compatibility."
+    severity: error
+    given: '$..properties.*.example'
+    then:
+      function: falsy

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organizer Dashboard - EventFlow</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        :root {
+            --background: 240 10% 99%; /* slate-50 */
+            --foreground: 240 10% 3.9%; /* slate-950 */
+            --card: 240 10% 100%; /* white */
+            --card-foreground: 240 10% 3.9%; /* slate-950 */
+            --popover: 0 0% 100%;
+            --popover-foreground: 240 10% 3.9%;
+            --primary: 262.1 83.3% 57.8%; /* violet-600 */
+            --primary-foreground: 0 0% 100%; /* white */
+            --secondary: 240 4.8% 95.9%; /* slate-100 */
+            --secondary-foreground: 240 5.9% 10%; /* slate-900 */
+            --muted: 240 4.8% 95.9%;
+            --muted-foreground: 240 3.8% 46.1%; /* slate-500 */
+            --accent: 142.1 76.2% 36.3%; /* green-600 */
+            --accent-foreground: 0 0% 100%;
+            --destructive: 0 84.2% 60.2%;
+            --destructive-foreground: 0 0% 100%;
+            --border: 240 5.9% 90%; /* slate-200 */
+            --input: 240 5.9% 90%;
+            --ring: 262.1 83.3% 57.8%;
+            --radius: 0.5rem;
+        }
+        body {
+            font-family: Inter, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-950">
+    <div id="app" class="flex flex-col min-h-screen">
+        <main class="flex-1 container mx-auto p-4 sm:p-6 lg:p-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">Organizer Dashboard</h1>
+                    <p class="text-slate-500">Welcome back, Alex. Here's a look at your events.</p>
+                </div>
+                <button type="button" class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 rounded-lg shadow-sm transition-colors">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                    Create New Event
+                </button>
+            </div>
+
+            <!-- KPIs -->
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-medium text-slate-500">Upcoming Registrations</h3>
+                        <i data-lucide="users" class="w-5 h-5 text-slate-400"></i>
+                    </div>
+                    <p class="text-3xl font-bold mt-2">1,204</p>
+                    <p class="text-xs text-slate-500 mt-1">+15% from last week</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-medium text-slate-500">Revenue (This Month)</h3>
+                        <i data-lucide="dollar-sign" class="w-5 h-5 text-slate-400"></i>
+                    </div>
+                    <p class="text-3xl font-bold mt-2">$25,830.50</p>
+                    <p class="text-xs text-slate-500 mt-1">+8.2% from last month</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-medium text-slate-500">Average Attendance Rate</h3>
+                        <i data-lucide="pie-chart" class="w-5 h-5 text-slate-400"></i>
+                    </div>
+                    <p class="text-3xl font-bold mt-2">88%</p>
+                     <p class="text-xs text-slate-500 mt-1">Across all active events</p>
+                </div>
+            </section>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Events List -->
+                <section class="lg:col-span-2 space-y-6">
+                    <div>
+                        <h2 class="text-xl font-semibold mb-4">Your Events</h2>
+                        <!-- Recently Edited -->
+                        <div class="bg-violet-50 border-2 border-violet-200 rounded-lg p-4 mb-6 shadow-sm">
+                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="font-semibold text-slate-800">InnovateSphere 2024 Tech Summit</span>
+                                        <span class="text-xs font-medium bg-violet-200 text-violet-800 px-2 py-1 rounded-full">Recently Edited</span>
+                                    </div>
+                                    <p class="text-sm text-slate-600 mt-1">October 22-24, 2024 - San Francisco, CA</p>
+                                </div>
+                                <div class="flex items-center gap-2 mt-3 sm:mt-0">
+                                    <button type="button" class="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors">Manage</button>
+                                    <button type="button" class="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors">View Page</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Event List Table -->
+                        <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm text-left">
+                                    <thead class="bg-slate-100 text-xs text-slate-600 uppercase">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3">Event</th>
+                                            <th scope="col" class="px-6 py-3">Status</th>
+                                            <th scope="col" class="px-6 py-3">Registrations</th>
+                                            <th scope="col" class="px-6 py-3">Revenue</th>
+                                            <th scope="col" class="px-6 py-3"><span class="sr-only">Actions</span></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="border-b border-slate-200 hover:bg-slate-50">
+                                            <td class="px-6 py-4 font-medium">
+                                                <div class="text-slate-900">Global Marketing Expo</div>
+                                                <div class="text-slate-500 text-xs">Dec 5, 2024</div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="inline-flex items-center gap-1.5 text-xs font-medium bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                                                    <span class="w-2 h-2 bg-green-500 rounded-full"></span> Active
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4">2,580 / 5,000</td>
+                                            <td class="px-6 py-4">$120,450</td>
+                                            <td class="px-6 py-4 text-right">
+                                                <button type="button" class="p-1 text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 rounded-md"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+                                            </td>
+                                        </tr>
+                                        <tr class="border-b border-slate-200 hover:bg-slate-50">
+                                            <td class="px-6 py-4 font-medium">
+                                                <div class="text-slate-900">Future of AI Workshop</div>
+                                                <div class="text-slate-500 text-xs">Nov 15, 2024</div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="inline-flex items-center gap-1.5 text-xs font-medium bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                                                    <span class="w-2 h-2 bg-green-500 rounded-full"></span> Active
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4">450 / 500</td>
+                                            <td class="px-6 py-4">$44,500</td>
+                                            <td class="px-6 py-4 text-right">
+                                                <button type="button" class="p-1 text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 rounded-md"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+                                            </td>
+                                        </tr>
+                                        <tr class="border-b border-slate-200 hover:bg-slate-50">
+                                            <td class="px-6 py-4 font-medium">
+                                                <div class="text-slate-900">Annual Charity Gala</div>
+                                                <div class="text-slate-500 text-xs">Feb 2, 2025</div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="inline-flex items-center gap-1.5 text-xs font-medium bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                                                    <span class="w-2 h-2 bg-yellow-500 rounded-full"></span> Draft
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4">-</td>
+                                            <td class="px-6 py-4">-</td>
+                                            <td class="px-6 py-4 text-right">
+                                                <button type="button" class="p-1 text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 rounded-md"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-slate-50">
+                                            <td class="px-6 py-4 font-medium">
+                                                <div class="text-slate-900">Startup Pitch Night 2025</div>
+                                                <div class="text-slate-500 text-xs">Mar 20, 2025</div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="inline-flex items-center gap-1.5 text-xs font-medium bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                                                    <span class="w-2 h-2 bg-yellow-500 rounded-full"></span> Draft
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4">-</td>
+                                            <td class="px-6 py-4">-</td>
+                                            <td class="px-6 py-4 text-right">
+                                                <button type="button" class="p-1 text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 rounded-md"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Upcoming Schedule -->
+                <aside class="space-y-6">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                        <h3 class="text-lg font-semibold mb-4">Upcoming Schedule</h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-start gap-4">
+                                <div class="flex-shrink-0 w-12 h-12 flex flex-col items-center justify-center bg-violet-100 text-violet-700 rounded-md font-bold">
+                                    <span class="text-xs">OCT</span>
+                                    <span class="text-xl">22</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-slate-800">InnovateSphere 2024</p>
+                                    <p class="text-sm text-slate-500">Starts in 3 days</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-4">
+                                <div class="flex-shrink-0 w-12 h-12 flex flex-col items-center justify-center bg-slate-100 text-slate-700 rounded-md font-bold">
+                                    <span class="text-xs">NOV</span>
+                                    <span class="text-xl">15</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-slate-800">Future of AI Workshop</p>
+                                    <p class="text-sm text-slate-500">9:00 AM - Virtual</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-4">
+                                <div class="flex-shrink-0 w-12 h-12 flex flex-col items-center justify-center bg-slate-100 text-slate-700 rounded-md font-bold">
+                                    <span class="text-xs">DEC</span>
+                                    <span class="text-xl">05</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-slate-800">Global Marketing Expo</p>
+                                    <p class="text-sm text-slate-500">All day - Convention Center</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </aside>
+            </div>
+        </main>
+    </div>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

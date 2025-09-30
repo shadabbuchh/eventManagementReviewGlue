@@ -1,0 +1,170 @@
+{
+  "data_interfaces_plan": [
+    {
+      "file_path": "backend/src/db/schema/events.ts",
+      "operation": "CREATE",
+      "detailed_changes": "1. Create new events table schema using Drizzle ORM with pgTable definition. 2. Define fields: id (uuid primary key with defaultRandom), name (varchar 255 not null), description (text nullable), status (varchar 50 with enum values: draft/published/archived, default 'draft'), startDate (timestamp not null), endDate (timestamp nullable for ongoing events), location (varchar 255 nullable), tags (text array nullable), createdAt (timestamp defaultNow), updatedAt (timestamp defaultNow). 3. Add unique constraints and indexes: unique index on (name, createdAt) to prevent duplicate event names at same time, index on status for filtering, index on startDate for date-based queries, index on tags using gin for array search. 4. Define TypeScript type exports: Event (inferSelect), NewEvent (inferInsert), UpdateEvent (Partial<Event>). 5. Add foreign key relationships if needed for future user ownership or category linking.",
+      "summary_changes": "Create events table schema with status, dates, tags, and proper indexes",
+      "type": "MIGRATION"
+    },
+    {
+      "file_path": "backend/src/db/schema/notifications.ts",
+      "operation": "CREATE",
+      "detailed_changes": "1. Create notifications table schema for tracking event-related notifications. 2. Define fields: id (uuid primary key with defaultRandom), eventId (uuid not null referencing events.id with onDelete cascade), title (varchar 255 not null), message (text not null), type (varchar 50 with enum: info/warning/error/success, default 'info'), isRead (boolean default false), createdAt (timestamp defaultNow), readAt (timestamp nullable). 3. Add indexes: index on (eventId, isRead) for efficient unread notification queries, index on createdAt for chronological ordering. 4. Define foreign key relationship to events table with CASCADE delete. 5. Export TypeScript types: Notification (inferSelect), NewNotification (inferInsert).",
+      "summary_changes": "Create notifications table linked to events for badge system",
+      "type": "MIGRATION"
+    },
+    {
+      "file_path": "backend/src/db/schema/index.ts",
+      "operation": "MODIFY",
+      "detailed_changes": "1. Add exports for new schema modules: export * from './events'; export * from './notifications';. 2. Ensure all table references are included in the schema object that gets passed to Drizzle database instance. 3. Update any schema type definitions to include the new tables in the overall database schema type.",
+      "summary_changes": "Update schema index to export new events and notifications tables",
+      "type": "MIGRATION"
+    },
+    {
+      "file_path": "openapi/openapi_spec_0.yaml",
+      "operation": "MODIFY",
+      "detailed_changes": "1. Add Event schema under components/schemas with properties: id (string uuid), name (string maxLength 255), description (string nullable), status (enum: draft/published/archived), startDate (string date-time), endDate (string date-time nullable), location (string maxLength 255 nullable), tags (array of strings nullable), notificationCount (integer minimum 0 for unread notifications), createdAt (string date-time), updatedAt (string date-time). 2. Add EventListResponse schema with data array of Event objects, total (integer), page (integer), pageSize (integer). 3. Add CreateEventRequest schema with required fields: name, startDate; optional fields: description, endDate, location, tags, status (default draft). 4. Add UpdateEventRequest schema with all Event fields as optional except id. 5. Add GET /events endpoint with operationId 'listEvents', parameters for pagination (page, pageSize), search (q), status filter, tag filter; response 200 with EventListResponse. 6. Add GET /events/{id} endpoint with operationId 'getEvent', path parameter id (uuid), response 200 with single Event object. 7. Add POST /events endpoint with operationId 'createEvent', requestBody with CreateEventRequest, response 201 with created Event. 8. Add PUT /events/{id} endpoint with operationId 'updateEvent', path parameter id, requestBody with UpdateEventRequest, response 200 with updated Event. 9. Add DELETE /events/{id} endpoint with operationId 'deleteEvent', path parameter id, response 204 no content. 10. Add POST /events/{id}/duplicate endpoint with operationId 'duplicateEvent', response 201 with duplicated Event. 11. Add GET /events/{id}/notifications endpoint with operationId 'getEventNotifications', response 200 with array of notification objects.",
+      "summary_changes": "Add complete Event API endpoints and schemas with CRUD operations and notifications",
+      "type": "OPEN_API_SPEC"
+    },
+    {
+      "file_path": "backend/src/db/migrations/0001-create-events-and-notifications.sql",
+      "operation": "CREATE",
+      "detailed_changes": "1. Run 'pnpm db:generate' command to create migration file from the new events and notifications schema definitions. 2. The generated SQL should include CREATE TABLE statements for events table with all defined columns, constraints, and indexes. 3. Include CREATE TABLE for notifications table with foreign key relationship to events. 4. Include CREATE INDEX statements for all defined indexes on both tables. 5. Verify the migration includes proper constraint definitions for enum values on status field. 6. Ensure foreign key constraints are properly defined with CASCADE delete behavior.",
+      "summary_changes": "Generate DDL migration for events and notifications tables",
+      "type": "MIGRATION"
+    },
+    {
+      "file_path": "backend/src/db/migrations/0002-seed-sample-events.sql",
+      "operation": "CREATE",
+      "detailed_changes": "1. Run 'pnpm db:create -- --name seed-sample-events' to create manual migration stub. 2. Write idempotent INSERT statements for sample events using ON CONFLICT (id) DO NOTHING pattern. 3. Create 5-10 sample events with different statuses (draft, published, archived), various start/end dates, different locations, and mixed tag arrays. 4. Include events with different notification scenarios: some with unread notifications, some without. 5. Insert corresponding sample notifications for some events using ON CONFLICT (id) DO NOTHING. 6. Ensure all UUIDs are hardcoded and deterministic for consistent seeding across environments. 7. Include events scheduled for past, present, and future dates to test different display scenarios.",
+      "summary_changes": "Create seed data for sample events and notifications",
+      "type": "SEED_DATA"
+    }
+  ],
+  "backend_plan": [
+    {
+      "file_path": "backend/src/repositories/events.repo.ts",
+      "operation": "CREATE",
+      "detailed_changes": "1. Copy the template file __entity__.repo.template.ts to events.repo.ts. 2. Replace all instances of __entity__ with 'event' and __entityPlural__ with 'events'. 3. Import the events table schema and types from '../db/schema/events'. 4. Extend BaseRepository with proper generic types: BaseRepository<typeof schema, typeof events, Event, NewEvent>. 5. Implement constructor accepting NodePgDatabase instance and passing events table to super(). 6. Add custom query methods: findByStatus(status: string) for filtering by event status, findWithUnreadNotifications() using LEFT JOIN to get notification counts, findByDateRange(startDate: Date, endDate: Date) for date-based filtering, searchByNameOrTags(query: string) using ILIKE and array operations for text search. 7. Override findAll method to include notification count via LEFT JOIN with notifications table and COUNT aggregate. 8. Add pagination support with offset and limit parameters in findAll method. 9. Include proper error handling and return type annotations using Drizzle inferred types.",
+      "summary_changes": "Create events repository with notification counting and search capabilities"
+    },
+    {
+      "file_path": "backend/src/repositories/notifications.repo.ts",
+      "operation": "CREATE",
+      "detailed_changes": "1. Copy the template file __entity__.repo.template.ts to notifications.repo.ts. 2. Replace all instances of __entity__ with 'notification' and __entityPlural__ with 'notifications'. 3. Import the notifications table schema and types from '../db/schema/notifications'. 4. Extend BaseRepository with proper generic types for notifications table. 5. Add custom methods: findByEventId(eventId: string) to get notifications for specific event, findUnreadByEventId(eventId: string) to get only unread notifications, markAsRead(id: string) to update isRead status and set readAt timestamp, countUnreadByEventId(eventId: string) to get count of unread notifications for an event. 6. Implement bulk operations: markAllAsReadForEvent(eventId: string) to mark all event notifications as read. 7. Add proper type annotations and error handling for all custom methods.",
+      "summary_changes": "Create notifications repository with read status management"
+    },
+    {
+      "file_path": "backend/src/repositories/index.ts",
+      "operation": "MODIFY",
+      "detailed_changes": "1. Add export statements for the new repository modules: export { EventRepository } from './events.repo'; export { NotificationRepository } from './notifications.repo';. 2. Update the repositories object or factory function to include instantiation of EventRepository and NotificationRepository with proper dependency injection. 3. Ensure all repository exports follow the established barrel pattern for clean imports throughout the application.",
+      "summary_changes": "Add exports for events and notifications repositories"
+    },
+    {
+      "file_path": "backend/src/services/events.service.ts",
+      "operation": "CREATE",
+      "detailed_changes": "1. Copy the template file __entity__.service.template.ts to events.service.ts. 2. Replace all placeholders: __entity__ with 'event', __entityPlural__ with 'events'. 3. Import Event, NewEvent types from schema and EventRepository from repositories. 4. Extend BaseService with proper generic types: BaseService<Event, NewEvent, Partial<Event>>. 5. Set entityName property to 'Event' for error messages and logging. 6. Implement constructor accepting EventRepository and NotificationRepository dependencies. 7. Override base methods with event-specific logic: create() method to set default status as 'draft', update() method to set updatedAt timestamp, delete() method to handle cascade deletion of notifications. 8. Add business-specific methods: publish(id: string) to change status from draft to published with validation, archive(id: string) to change status to archived, duplicate(id: string) to create copy with 'draft' status and '(Copy)' suffix in name, getUpcomingEvents() to filter events by future startDate, getEventsByStatus(status: string) for status-based filtering. 9. Add validation logic: validateEventDates() to ensure endDate is after startDate, validateStatusTransition() to enforce valid status changes (draft->published->archived). 10. Include notification creation for important events like status changes.",
+      "summary_changes": "Create events service with business logic for status management and duplication"
+    },
+    {
+      "file_path": "backend/src/services/notifications.service.ts",
+      "operation": "CREATE",
+      "detailed_changes": "1. Copy the template file __entity__.service.template.ts to notifications.service.ts. 2. Replace all placeholders: __entity__ with 'notification', __entityPlural__ with 'notifications'. 3. Import Notification, NewNotification types from schema and NotificationRepository from repositories. 4. Extend BaseService with proper notification generic types. 5. Set entityName property to 'Notification'. 6. Add business methods: createEventNotification(eventId: string, title: string, message: string, type: string) for creating event-specific notifications, markAsRead(id: string) to update read status, getUnreadCountForEvent(eventId: string) to return count of unread notifications, markAllReadForEvent(eventId: string) for bulk read operations. 7. Add notification type validation to ensure only valid types (info, warning, error, success) are used. 8. Include automatic notification creation for event lifecycle events (created, updated, published, archived).",
+      "summary_changes": "Create notifications service for managing event-related notifications"
+    },
+    {
+      "file_path": "backend/src/services/index.ts",
+      "operation": "MODIFY",
+      "detailed_changes": "1. Add export statements for new service modules: export { EventService } from './events.service'; export { NotificationService } from './notifications.service';. 2. Update the services factory or dependency injection setup to include EventService and NotificationService instantiation with their required repository dependencies. 3. Ensure services are properly registered in the service container for injection into handlers.",
+      "summary_changes": "Add exports for events and notifications services"
+    },
+    {
+      "file_path": "backend/src/handlers/open-api-service-handlers.ts",
+      "operation": "MODIFY",
+      "detailed_changes": "1. Import required types from @app/openapi/generated-types for request and response typing. 2. Add listEvents method matching operationId from OpenAPI spec: accept FastifyRequest parameter, extract query parameters (page, pageSize, q, status, tags) from request.query, call this.services.event.findWithFilters() with extracted parameters, return response in format { data: events, total, page, pageSize }. 3. Add getEvent method: extract id from request.params, call this.services.event.findById(id), return { data: event } or handle not found error. 4. Add createEvent method: cast request.body to CreateEventRequest type, validate required fields, call this.services.event.create(body), set reply.code(201), return { data: createdEvent }. 5. Add updateEvent method: extract id from params and body from request, call this.services.event.update(id, body), return { data: updatedEvent }. 6. Add deleteEvent method: extract id from params, call this.services.event.delete(id), set reply.code(204), return empty response. 7. Add duplicateEvent method: extract id from params, call this.services.event.duplicate(id), set reply.code(201), return { data: duplicatedEvent }. 8. Add getEventNotifications method: extract eventId from params, call this.services.notification.findByEventId(eventId), return { data: notifications }. 9. Include proper error handling for each method, letting service layer errors bubble up to global error handler. 10. Ensure all method names exactly match the operationId values defined in OpenAPI specification.",
+      "summary_changes": "Add event and notification handler methods to OpenAPIServiceHandlers class"
+    }
+  ],
+  "frontend_plan": [
+    {
+      "file_path": "frontend/src/apis/events.apis.ts",
+      "operation": "CREATE",
+      "detailed_changes": "1. Import get, post, put, del, patch functions from './index' and handleError utility. 2. Import types from @app/openapi/generated-types using paths type for proper endpoint typing. 3. Define API functions: getEvents(params: { page?: number; pageSize?: number; q?: string; status?: string; tags?: string[] }) using get('/events') with query parameters, getEvent(id: string) using get('/events/{id}') with path parameter, createEvent(data: CreateEventRequest) using post('/events') with request body, updateEvent(id: string, data: UpdateEventRequest) using put('/events/{id}'), deleteEvent(id: string) using del('/events/{id}'), duplicateEvent(id: string) using post('/events/{id}/duplicate'), getEventNotifications(id: string) using get('/events/{id}/notifications'). 4. Each function should handle error responses using handleError utility and return typed responses matching OpenAPI specification. 5. Include proper TypeScript typing for all parameters and return values using generated types. 6. Add JSDoc comments for each function describing parameters and return types.",
+      "summary_changes": "Create typed API client functions for all event operations"
+    },
+    {
+      "file_path": "frontend/src/apis/index.ts",
+      "operation": "MODIFY",
+      "detailed_changes": "1. Add export statement for events API module: export * from './events.apis';. 2. Ensure all event-related API functions are accessible through the barrel export pattern. 3. Update any API client configuration if needed to support the new event endpoints.",
+      "summary_changes": "Export events API functions through barrel pattern"
+    },
+    {
+      "file_path": "frontend/src/store/events.store.ts",
+      "operation": "CREATE",
+      "detailed_changes": "1. Import create function from zustand and types from @app/openapi/generated-types. 2. Define EventsState interface with properties: searchQuery (string), selectedStatus (string or null), selectedTags (string array), currentPage (number), pageSize (number), sortField (string), sortOrder ('asc' | 'desc'), selectedEventIds (string array for bulk operations). 3. Define actions interface with methods: setSearchQuery, setSelectedStatus, setSelectedTags, setCurrentPage, setPageSize, setSorting, selectEvent, selectAllEvents, clearSelection, resetFilters. 4. Create Zustand store using create function with initial state and action implementations. 5. Each action should update only the relevant state properties without mutating existing state. 6. Add computed selectors as getter functions within the store: hasFilters (boolean indicating if any filters are active), selectedCount (number of selected events). 7. Ensure all state updates follow immutable patterns and only update primitive values to prevent re-render loops.",
+      "summary_changes": "Create Zustand store for events list filtering and selection state"
+    },
+    {
+      "file_path": "frontend/src/store/index.ts",
+      "operation": "MODIFY",
+      "detailed_changes": "1. Add export statement for the events store: export { useEventsStore } from './events.store';. 2. Ensure the store is accessible through the barrel export pattern for clean imports throughout the application.",
+      "summary_changes": "Export events store through barrel pattern"
+    },
+    {
+      "file_path": "frontend/src/hooks/useEvents.ts",
+      "operation": "CREATE",
+      "detailed_changes": "1. Import useQuery, useMutation, useQueryClient from @tanstack/react-query. 2. Import API functions from @/apis and event-related types. 3. Create useEvents hook for fetching events list: accept parameters for pagination and filtering (page, pageSize, searchQuery, status, tags), use useQuery with key ['events', params], call getEvents API function with parameters, handle loading and error states, include staleTime and cacheTime configuration. 4. Create useEvent hook for single event fetching: accept id parameter, use useQuery with key ['events', id], call getEvent API function, handle not found scenarios. 5. Create useCreateEvent mutation hook: use useMutation with createEvent API function, include optimistic updates, invalidate events list query on success, handle error scenarios with toast notifications. 6. Create useUpdateEvent mutation hook: similar pattern with updateEvent API function, invalidate both list and individual event queries. 7. Create useDeleteEvent mutation hook: use deleteEvent API function, remove from cache optimistically, handle error rollback. 8. Create useDuplicateEvent mutation hook: use duplicateEvent API function, add to cache optimistically, handle success notifications. 9. Add useEventNotifications hook: accept eventId parameter, fetch notifications for specific event, include automatic refetch on event updates. 10. Include proper error handling, loading states, and cache invalidation strategies for all hooks.",
+      "summary_changes": "Create TanStack Query hooks for all event operations with caching and optimistic updates"
+    },
+    {
+      "file_path": "frontend/src/hooks/index.ts",
+      "operation": "MODIFY",
+      "detailed_changes": "1. Add export statements for all event-related hooks: export * from './useEvents';. 2. Ensure hooks are accessible through barrel exports for clean importing in components.",
+      "summary_changes": "Export event hooks through barrel pattern"
+    },
+    {
+      "file_path": "frontend/src/components/EventsTable.tsx",
+      "operation": "CREATE",
+      "detailed_changes": "1. Import required components from @/components: DataTable, Button, Badge, DropdownMenu components. 2. Import hooks from @/hooks: useEvents, useEventsStore. 3. Import icons from lucide-react: Edit, Eye, Copy, Trash, MoreHorizontal, Calendar, MapPin. 4. Define column configuration for DataTable using ColumnDef from @tanstack/react-table: id column (hidden for selection), name column with sortable header and search highlighting, status column with colored badges (draft: gray, published: green, archived: red), startDate column with formatted date display using date-fns, location column with MapPin icon, notificationCount column with notification badge (show only if count > 0), actions column with dropdown menu for Edit/View/Duplicate/Delete actions. 5. Implement EventsTable component accepting props: data (Event array), loading (boolean), onEventClick (function), onEditEvent (function), onViewEvent (function), onDuplicateEvent (function), onDeleteEvent (function). 6. Use useEventsStore selectors to get current search query and selection state. 7. Configure DataTable with: columns array, data prop, searchKey 'name', searchPlaceholder 'Search events by name...', enableRowSelection for bulk operations, onRowClick handler to trigger onEventClick prop. 8. Add row selection UI with bulk action buttons (Delete Selected, Archive Selected) when items are selected. 9. Include loading states and empty states with appropriate messaging. 10. Style notification badges with proper colors and positioning next to event names.",
+      "summary_changes": "Create DataTable-based events list with actions, badges, and notification indicators"
+    },
+    {
+      "file_path": "frontend/src/components/EventFilters.tsx",
+      "operation": "CREATE",
+      "detailed_changes": "1. Import UI components: Input, Select, Badge, Button from @/components/ui. 2. Import useEventsStore hook and event-related types. 3. Create EventFilters component with search input for event name/tag filtering, status dropdown with options (All, Draft, Published, Archived), tag filter with multi-select capability showing available tags as badges, date range picker for filtering by event dates, reset filters button to clear all active filters. 4. Use useEventsStore selectors to get current filter values: searchQuery, selectedStatus, selectedTags. 5. Use useEventsStore actions to update filters: setSearchQuery, setSelectedStatus, setSelectedTags, resetFilters. 6. Implement tag filtering UI: show currently selected tags as removable badges, provide dropdown or combobox for selecting additional tags from available options. 7. Add visual indicators for active filters: show count of active filters, highlight filter controls when active. 8. Include debounced search input to prevent excessive API calls on every keystroke. 9. Ensure responsive design with proper mobile layout for filter controls. 10. Add clear indication when filters are applied with option to quickly clear all filters.",
+      "summary_changes": "Create comprehensive filtering UI for events with search, status, tags, and date filters"
+    },
+    {
+      "file_path": "frontend/src/components/index.ts",
+      "operation": "MODIFY",
+      "detailed_changes": "1. Add export statements for new event components: export { EventsTable } from './EventsTable'; export { EventFilters } from './EventFilters';. 2. Ensure components are accessible through barrel exports for clean importing in pages.",
+      "summary_changes": "Export event components through barrel pattern"
+    },
+    {
+      "file_path": "frontend/src/pages/EventsListPage.tsx",
+      "operation": "CREATE",
+      "detailed_changes": "1. Import Helmet from react-helmet-async for page title management. 2. Import required components: Container, Typography, Button, EventsTable, EventFilters from @/components. 3. Import hooks: useEvents, useEventsStore, useCreateEvent, useUpdateEvent, useDeleteEvent, useDuplicateEvent. 4. Import useNavigate from react-router for navigation. 5. Create EventsListPage component with proper page structure: Helmet for page title 'Events | App Name', main container with Typography.H1 header 'Events', action buttons area with 'Create Event' button, EventFilters component for search and filtering, EventsTable component with event data and action handlers. 6. Use useEventsStore selectors to get current filter state: searchQuery, selectedStatus, selectedTags, currentPage, pageSize. 7. Use useEvents hook with current filter parameters to fetch filtered event data. 8. Implement event action handlers: handleEventClick to navigate to event detail page using '/events/{id}', handleEditEvent to navigate to edit page using '/events/{id}/edit', handleViewEvent to navigate to detail page, handleDuplicateEvent using useDuplicateEvent mutation with success notification, handleDeleteEvent using useDeleteEvent mutation with confirmation dialog. 9. Add loading states with skeleton components or loading indicators. 10. Include error handling with error boundaries or error states display. 11. Add pagination controls using the pagination component with current page state from store. 12. Include empty state handling when no events are found with call-to-action to create first event.",
+      "summary_changes": "Create main events list page with filtering, actions, and navigation"
+    },
+    {
+      "file_path": "frontend/src/pages/index.ts",
+      "operation": "MODIFY",
+      "detailed_changes": "1. Add export statement for EventsListPage: export { EventsListPage } from './EventsListPage';. 2. Ensure page is accessible through barrel exports for clean importing in routing configuration.",
+      "summary_changes": "Export EventsListPage through barrel pattern"
+    },
+    {
+      "file_path": "frontend/src/routes/AppRoutes.tsx",
+      "operation": "MODIFY",
+      "detailed_changes": "1. Import EventsListPage from @/pages. 2. Add route configuration for events list: <Route path='/events' element={<EventsListPage />} />. 3. Add route for event detail page placeholder: <Route path='/events/:id' element={<EventDetailPage />} /> (component will be created in future iterations). 4. Add route for event creation: <Route path='/events/new' element={<CreateEventPage />} />. 5. Add route for event editing: <Route path='/events/:id/edit' element={<EditEventPage />} />. 6. Ensure routes are placed within the appropriate layout wrapper (AppLayout). 7. Update any catch-all or default routes to handle new event routes properly.",
+      "summary_changes": "Add event-related routes to application routing configuration"
+    },
+    {
+      "file_path": "frontend/src/components/layouts/AppLayout.tsx",
+      "operation": "MODIFY",
+      "detailed_changes": "1. Import Calendar icon from lucide-react for events navigation. 2. Update navigationItems array to include events navigation item: { title: 'Events', href: '/events', icon: Calendar }. 3. Ensure the navigation item is properly positioned in the menu structure. 4. Add any necessary permissions or role-based access control for the events section if required. 5. Update navigation styling to accommodate the new menu item.",
+      "summary_changes": "Add Events navigation item to main application layout"
+    }
+  ]
+}

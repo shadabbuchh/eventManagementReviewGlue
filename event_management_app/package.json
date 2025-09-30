@@ -1,0 +1,43 @@
+{
+  "name": "@app",
+  "private": true,
+  "packageManager": "pnpm@10.14.0",
+  "engines": {
+    "node": ">=22.17.1",
+    "pnpm": "~10.14.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.29.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.17.1",
+    "eslint": "^9.29.0",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-unused-imports": "4.2.0",
+    "js-yaml": "^4.1.0",
+    "lint-staged": "16.1.2",
+    "prettier": "3.6.2",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.34.1",
+    "vitest": "^3.2.4"
+  },
+  "scripts": {
+    "preflight": "bash scripts/preflight.sh",
+    "gen:handlers": "tsx scripts/generate-handler-stubs.ts",
+    "validate": "pnpm run preflight && pnpm run gen:handlers",
+    "build": "pnpm -r --parallel build",
+    "test": "pnpm run validate && pnpm -r --parallel test",
+    "typecheck": "pnpm -r --parallel typecheck",
+    "lint": "pnpm -r --parallel lint",
+    "lint:fix": "pnpm -r --parallel lint:fix",
+    "prettier": "pnpm -r --parallel prettier",
+    "prettier:fix": "pnpm -r --parallel prettier:fix"
+  },
+  "pnpm": {
+    "overrides": {
+      "esbuild": "^0.25.8",
+      "form-data": "^4.0.4"
+    }
+  }
+}

@@ -1,0 +1,115 @@
+.grid-auto-responsive {
+  container-type: inline-size;
+  container-name: grid-container;
+}
+
+/* Container query breakpoints for automatic column adjustment */
+@container grid-container (max-width: 600px) {
+  .grid-auto-responsive {
+    --grid-computed-columns: 1;
+  }
+}
+
+@container grid-container (min-width: 601px) and (max-width: 900px) {
+  .grid-auto-responsive {
+    --grid-computed-columns: 2;
+  }
+}
+
+@container grid-container (min-width: 901px) and (max-width: 1200px) {
+  .grid-auto-responsive {
+    --grid-computed-columns: 3;
+  }
+}
+
+@container grid-container (min-width: 1201px) and (max-width: 1800px) {
+  .grid-auto-responsive {
+    --grid-computed-columns: 4;
+  }
+}
+
+@container grid-container (min-width: 1801px) {
+  .grid-auto-responsive {
+    --grid-computed-columns: 5;
+  }
+}
+
+/* For narrow containers (nested grids), use more conservative breakpoints */
+.grid-auto-responsive[data-grid-narrow='true'] {
+  container-name: grid-narrow-container;
+}
+
+@container grid-narrow-container (max-width: 600px) {
+  .grid-auto-responsive[data-grid-narrow='true'] {
+    --grid-computed-columns: 1;
+  }
+}
+
+@container grid-narrow-container (min-width: 601px) and (max-width: 900px) {
+  .grid-auto-responsive[data-grid-narrow='true'] {
+    --grid-computed-columns: 1;
+  }
+}
+
+@container grid-narrow-container (min-width: 901px) and (max-width: 1200px) {
+  .grid-auto-responsive[data-grid-narrow='true'] {
+    --grid-computed-columns: 2;
+  }
+}
+
+@container grid-narrow-container (min-width: 1201px) and (max-width: 1800px) {
+  .grid-auto-responsive[data-grid-narrow='true'] {
+    --grid-computed-columns: 3;
+  }
+}
+
+@container grid-narrow-container (min-width: 1801px) {
+  .grid-auto-responsive[data-grid-narrow='true'] {
+    --grid-computed-columns: 4;
+  }
+}
+
+/* Enhanced grid template for automatic column sizing */
+.grid-auto-fit {
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(var(--grid-min-column-width, 280px), 100%), 1fr)
+  );
+}
+
+/* Smooth transitions for grid changes */
+.grid-smooth-transition {
+  transition: grid-template-columns 0.2s ease-out;
+}
+
+/* Grid items should maintain aspect ratio when possible */
+.grid-item-responsive {
+  min-height: 0; /* Prevent flexbox children from overflowing */
+  container-type: inline-size;
+}
+
+/* Debug styles for development */
+.grid-debug-overlay {
+  position: relative;
+}
+
+.grid-debug-overlay::before {
+  content: 'Cols: ' attr(data-grid-max-columns) ' | Width: '
+    attr(data-grid-width) 'px';
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: rgba(59, 130, 246, 0.8);
+  color: white;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-family: monospace;
+  border-radius: 0 0 0 4px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Hide debug overlay in production */
+.grid-debug-overlay:not([data-grid-debug='true'])::before {
+  display: none;
+}

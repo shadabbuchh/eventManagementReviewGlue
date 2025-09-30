@@ -1,0 +1,432 @@
+openapi: 3.1.0
+info:
+  title: App Template API
+  version: 1.0.0
+  description: Template API specification - will be populated by workflow
+servers:
+  - url: /api/v1
+    description: API version 1
+paths:
+  /events:
+    get:
+      summary: List events with status, next occurrence, quick actions and notification badge
+      operationId: listEvents
+      description: |
+        Returns a paginated list of events. Supports search by name or tag, and filtering by status. Each event includes status (draft/published/archived), the next occurrence datetime (if any), and a flag for unread notifications.
+      parameters:
+        - name: page
+          in: query
+          description: Page number (1-based)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 25
+        - name: q
+          in: query
+          description: Search query to match event name
+          schema:
+            type: string
+        - name: tag
+          in: query
+          description: Filter by tag value
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Filter by event status
+          schema:
+            type: string
+            enum: [draft, published, archived]
+      responses:
+        '200':
+          description: Paginated list of events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventListResponse'
+              examples:
+                sample:
+                  summary: Sample paginated response
+                  value:
+                    data:
+                      - id: 'a1b2c3d4'
+                        name: 'Community Meetup'
+                        status: 'published'
+                        nextOccurrence: '2025-10-10T18:00:00Z'
+                        tags: ['community', 'networking']
+                        unreadNotifications: true
+                        createdAt: '2025-01-01T10:00:00Z'
+                        updatedAt: '2025-09-01T12:00:00Z'
+                      - id: 'e5f6g7h8'
+                        name: 'Board Planning'
+                        status: 'draft'
+                        nextOccurrence: null
+                        tags: ['internal']
+                        unreadNotifications: false
+                        createdAt: '2025-06-15T09:00:00Z'
+                        updatedAt: '2025-09-10T08:00:00Z'
+                    meta:
+                      page: 1
+                      pageSize: 25
+                      totalPages: 2
+                      totalItems: 30
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /events/{eventId}:
+    get:
+      summary: Get event detail
+      operationId: getEvent
+      description: Retrieve the full details for a single event. Used when a user opens an event from the list.
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Event detail retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+              examples:
+                sample:
+                  summary: Event detail sample
+                  value:
+                    id: 'a1b2c3d4'
+                    name: 'Community Meetup'
+                    description: 'A meetup for local community members.'
+                    status: 'published'
+                    nextOccurrence: '2025-10-10T18:00:00Z'
+                    occurrences:
+                      - '2025-10-10T18:00:00Z'
+                      - '2025-11-14T18:00:00Z'
+                    tags: ['community', 'networking']
+                    unreadNotifications: true
+                    createdAt: '2025-01-01T10:00:00Z'
+                    updatedAt: '2025-09-01T12:00:00Z'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Update an event
+      operationId: updateEvent
+      description: Update fields of an existing event (quick edit from list or full edit page).
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventUpdateRequest'
+      responses:
+        '200':
+          description: Event successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      summary: Archive or delete an event
+      operationId: deleteEvent
+      description: Archive (soft delete) or permanently remove an event. By default archives the event unless query param permanent=true is provided.
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: permanent
+          in: query
+          description: If true, permanently deletes the event. Otherwise archives it.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '204':
+          description: Event archived/deleted successfully (no content)
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /events/{eventId}/duplicate:
+    post:
+      summary: Duplicate an event
+      operationId: duplicateEvent
+      description: Create a copy of the specified event. The duplicate will be created in draft status.
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Optional overrides for the duplicated event (e.g., name)
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Event duplicated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+              examples:
+                sample:
+                  summary: Duplicated event
+                  value:
+                    id: 'dup-1234'
+                    name: 'Community Meetup (Copy)'
+                    status: 'draft'
+                    nextOccurrence: null
+                    tags: ['community', 'networking']
+                    unreadNotifications: false
+                    createdAt: '2025-09-20T10:00:00Z'
+                    updatedAt: '2025-09-20T10:00:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /events/{eventId}/cancel:
+    post:
+      summary: Cancel an event occurrence or the whole event
+      operationId: cancelEvent
+      description: Cancel a specific upcoming occurrence or mark the whole event as canceled/archived. Returns the updated event.
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                occurrence:
+                  type: string
+                  description: Datetime of the occurrence to cancel. If omitted, the entire event will be canceled/archived.
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Event cancelled/updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /events/{eventId}/quick-actions:
+    post:
+      summary: Perform a quick action on an event (edit, view, duplicate, cancel)
+      operationId: eventQuickAction
+      description: Execute a quick action for an event as shown in list quick actions. The action will be validated server side.
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [edit, view, duplicate, cancel]
+                payload:
+                  type: object
+                  description: Optional payload for the action (e.g., fields to update for edit, occurrence for cancel)
+      responses:
+        '200':
+          description: Action executed successfully. Response varies by action.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/Event'
+                  - type: object
+                    properties:
+                      message:
+                        type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: string
+        fieldErrors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+    Event:
+      type: object
+      required: [id, name, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          description: Event status
+          enum: [draft, published, archived]
+        nextOccurrence:
+          type: string
+          format: date-time
+          nullable: true
+          description: Next scheduled occurrence datetime if any
+        occurrences:
+          type: array
+          items:
+            type: string
+            format: date-time
+        tags:
+          type: array
+          items:
+            type: string
+        unreadNotifications:
+          type: boolean
+          description: Whether the event has unread notifications (for badge in UI)
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    EventListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Event'
+        meta:
+          type: object
+          properties:
+            page:
+              type: integer
+            pageSize:
+              type: integer
+            totalPages:
+              type: integer
+            totalItems:
+              type: integer
+    EventCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [draft, published]
+        occurrences:
+          type: array
+          items:
+            type: string
+            format: date-time
+        tags:
+          type: array
+          items:
+            type: string
+    EventUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [draft, published, archived]
+        occurrences:
+          type: array
+          items:
+            type: string
+            format: date-time
+        tags:
+          type: array
+          items:
+            type: string
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Conflict (concurrent update or duplicate)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UnprocessableEntity:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

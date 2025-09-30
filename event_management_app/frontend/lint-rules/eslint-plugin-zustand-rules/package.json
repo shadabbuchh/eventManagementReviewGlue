@@ -1,0 +1,10 @@
+{
+  "name": "eslint-plugin-zustand-rules",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "private": true,
+  "peerDependencies": {
+    "eslint": ">=9.0.0"
+  }
+}

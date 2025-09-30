@@ -1,0 +1,6 @@
+dist/
+node_modules/
+pnpm-lock.yaml
+package.json
+README.md
+CLAUDE.md

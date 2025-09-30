@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipDefaultLibCheck": true,
+    "skipLibCheck": true,
+    "noErrorTruncation": true
+  },
+  "include": ["**/*.ts"],
+  "exclude": [
+    "dist/**",
+    "node_modules/**",
+    "src/types/template-placeholders.d.ts",
+    "**/*.template.ts",
+    "tests/**/*.template.ts"
+  ]
+}
