@@ -47,9 +47,6 @@ event_management_app/
 │   ├── openapi_spec.yaml   # OpenAPI 3.1 specification - DEFINES ALL API ROUTES
 │   └── generated-types.d.ts # Auto-generated TypeScript types
 ├── api/               # Vercel serverless function
-├── docker/            # Docker configuration
-├── e2b/               # E2B sandbox environment
-└── scripts/           # Build and utility scripts
 ```
 
 ## 🛠️ Tech Stack
@@ -81,32 +78,6 @@ event_management_app/
 - Node.js >= 22.17.1
 - PNPM ~10.14.0
 - PostgreSQL (for local development)
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd event_management_app
-```
-
-2. Install dependencies:
-```bash
-pnpm install
-```
-
-3. Set up environment variables:
-```bash
-# Backend configuration
-cp backend/.env.example backend/.env
-# Edit backend/.env with your database credentials
-```
-
-4. Run database migrations:
-```bash
-cd backend
-pnpm db:migrate
-```
 
 ### Development
 
@@ -160,53 +131,6 @@ The API follows OpenAPI 3.1 specification. Key endpoints include:
 - `POST /api/v1/events/{id}/cancel` - Cancel event or occurrence
 - `POST /api/v1/events/{id}/quick-actions` - Perform quick actions
 
-## 🧪 Testing
-
-Run tests for all workspaces:
-```bash
-pnpm test
-```
-
-Run tests with coverage:
-```bash
-cd backend
-pnpm coverage
-```
-
-## 🏗️ Building for Production
-
-Build all workspaces:
-```bash
-pnpm build
-```
-
-This creates:
-- `backend/dist/` - Compiled backend code
-- `frontend/dist/` - Production-ready frontend assets
-
-## 🐳 Docker Deployment
-
-Build and run with Docker:
-```bash
-docker build -f docker/Dockerfile -t event-management-app .
-docker run -p 3001:3001 event-management-app
-```
-
-## 🚀 Deployment
-
-### Vercel Deployment
-The application is configured for Vercel deployment with:
-- Frontend static hosting
-- Backend as serverless functions
-- Automatic deployments from main branch
-
-### E2B Sandbox
-For development in E2B sandbox environment:
-```bash
-cd e2b
-./start.sh
-```
-
 ## 📚 Development Workflow
 
 ### Adding New API Endpoints (IMPORTANT!)
@@ -231,23 +155,6 @@ cd e2b
 6. **Validate**: Run `pnpm validate` for preflight checks
 
 **Remember:** Never create route files in `backend/src/routes/` for business logic!
-
-## 🔧 Scripts
-
-### Root Level
-- `pnpm build` - Build all workspaces
-- `pnpm test` - Run all tests
-- `pnpm lint` - Lint all code
-- `pnpm typecheck` - Type check all TypeScript
-
-### Backend
-- `pnpm dev` - Start development server
-- `pnpm db:generate` - Generate migration files
-- `pnpm db:migrate` - Run migrations
-
-### Frontend
-- `pnpm dev` - Start development server
-- `pnpm build` - Build for production
 
 ## 🤝 Contributing
 
